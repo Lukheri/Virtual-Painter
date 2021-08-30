@@ -11,8 +11,7 @@ class ColorChanger:
     purple = (255, 0, 255)
     yellow = (0, 255, 255)
     brown = (0, 52, 102)
-    blue = (139, 0, 0)
-    colors = [red, green, purple, yellow, brown, blue]
+    colors = [red, green, purple, yellow, brown]
     change_color = False
 
     def get_color(self):
@@ -33,27 +32,16 @@ class ColorChanger:
     def set_change_color_false(self):
         self.change_color = False
 
-class Coordinates:
+class PrevCoordinates:
     prev_x = 0
     prev_y = 0
 
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
+    def get_prev_xy(self):
+        return (self.prev_x, self.prev_y)
     
-    def set_xy(self, x, y):
-        self.x = x
-        self.y = y
-    
-    def get_xy(self):
-        return self.x, self.y
-    
-    def set_prev_xy(self):
-        self.prev_x, self.prev_y = self.get_xy()
-
-prev_x, prev_y = 0, 0
-eraser_prev_x, eraser_prev_y = 0, 0
-
+    def set_prev_xy(self, x, y):
+        self.prev_x, self.prev_y = x, y
+        
 cap = cv2.VideoCapture(0)
 cap.set(3, 1280)
 cap.set(4, 720)
@@ -63,6 +51,8 @@ detector = htm.handDetector(detectionCon=0.85)
 imgCanvas = np.zeros((720, 1280, 3), np.uint8)
 
 color = ColorChanger()
+drawing_coordinates = PrevCoordinates()
+eraser_coordinates = PrevCoordinates()
 
 def draw_circle_eraser(x1, x2, y1, y2):
     radius = int(math.dist([x1, y1], [x2, y2])/2)
@@ -87,18 +77,18 @@ while True:
         center, radius = draw_circle_eraser(x1, x2, y1, y2)
 
         if not fingers[0] and fingers[1] and fingers[2] and not fingers[3]:
-            if not eraser_prev_x and not eraser_prev_y:
-                eraser_prev_x, eraser_prev_y = center
+            if not eraser_coordinates.prev_x and not eraser_coordinates.prev_y:
+                eraser_coordinates.set_prev_xy(*center)
 
             cv2.circle(img, center, radius+15, (0, 0, 0), cv2.FILLED)
-            cv2.line(imgCanvas, (eraser_prev_x, eraser_prev_y), center, (0,0,0), (radius+15)*2)
+            cv2.line(imgCanvas, eraser_coordinates.get_prev_xy(), center, (0,0,0), (radius+15)*2)
         
         if not fingers[0] and fingers[1] and not fingers[2] and not fingers[3]:
-            if not prev_x and not prev_y:
-                prev_x, prev_y = x1, y1
+            if not drawing_coordinates.prev_x and not drawing_coordinates.prev_y:
+                drawing_coordinates.set_prev_xy(x1, y1)
 
             cv2.circle(img, (x1, y1), 15, color.get_color(), cv2.FILLED)
-            cv2.line(imgCanvas, (prev_x, prev_y), (x1, y1), color.get_color(), 15)
+            cv2.line(imgCanvas, drawing_coordinates.get_prev_xy(), (x1, y1), color.get_color(), 15)
         
         if not fingers[2] and not fingers[3] and fingers[4]:
             cv2.circle(img, (x3, y3), 7, color.get_color(), cv2.FILLED)
@@ -109,8 +99,8 @@ while True:
         if not fingers[4]:
             color.set_change_color_true()
             
-        prev_x, prev_y = x1, y1
-        eraser_prev_x, eraser_prev_y = center
+        drawing_coordinates.set_prev_xy(x1, y1)
+        eraser_coordinates.set_prev_xy(*center)
 
     # Makes you draw on the video
     imgGray = cv2.cvtColor(imgCanvas, cv2.COLOR_BGR2GRAY)
