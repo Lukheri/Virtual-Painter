@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-import mediapipe as mp
 import HandTrackingModule as htm
 import math
 
@@ -41,7 +40,7 @@ class PrevCoordinates:
     
     def set_prev_xy(self, x, y):
         self.prev_x, self.prev_y = x, y
-        
+
 cap = cv2.VideoCapture(0)
 cap.set(3, 1280)
 cap.set(4, 720)
@@ -90,7 +89,7 @@ while True:
             cv2.circle(img, (x1, y1), 15, color.get_color(), cv2.FILLED)
             cv2.line(imgCanvas, drawing_coordinates.get_prev_xy(), (x1, y1), color.get_color(), 15)
         
-        if not fingers[2] and not fingers[3] and fingers[4]:
+        if fingers[4]:
             cv2.circle(img, (x3, y3), 7, color.get_color(), cv2.FILLED)
             if color.get_change_color():
                 color.set_color_pointer()
