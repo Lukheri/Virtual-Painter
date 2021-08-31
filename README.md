@@ -1,5 +1,6 @@
 # Virtual Painter
 A program that allows you to paint virtually using your fingers. Developed in python using openCV and mediapipe.
+Requires openCV, mediapipe, and numpy installed.
 
 # Features
 
